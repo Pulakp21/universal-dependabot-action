@@ -70,8 +70,8 @@ async function createPullRequestsForAlerts(octokit, owner, repo, alerts) {
     const { number, security_advisory, dependency } = alert;
 
     if (alert.state === 'open') {
-      const branchName = `dependabot/${alert.dependency.package}/security-fix`;
-      core.info(`Creating pull request for ${alert.dependency.package}...`);
+      const branchName = `dependabot/${alert.dependency.package.name}/security-fix`;
+      core.info(`Creating pull request for ${alert.dependency.package.name}...`);
 
       // Create a branch
       await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
@@ -88,7 +88,7 @@ async function createPullRequestsForAlerts(octokit, owner, repo, alerts) {
         title: `Security fix for ${alert.dependency.package}`,
         head: branchName,
         base: 'main', // Adjust as needed
-        body: `Fixes the following security vulnerability:\n\n- ${alert.dependency.package}\n\n**Severity**: ${alert.severity}\n\n**Advisory**: ${alert.advisory}\n\n- **Summary**: ${security_advisory.summary}\N\n Fixes #${number}`,
+        body: `Fixes the following security vulnerability:\n\n- ${alert.dependency.package.name}(${alert.dependency.package.ecosystem})\n\n**Severity**: ${alert.severity}\n\n**Advisory**: ${alert.advisory}\n\n- **Summary**: ${security_advisory.summary}\N\n Fixes #${number}`,
       });
 
       // body: `### Security Fix\n\n- **Package**: ${dependency.package}\n- **Severity**: ${security_advisory.severity}\n- **Summary**: ${security_advisory.summary}\n\nFixes #${number}`,
