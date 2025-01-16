@@ -1,1 +1,1 @@
-# Dependabot-Customaction-POC
+# universal-dependabot-action

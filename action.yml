@@ -1,0 +1,16 @@
+name: 'Universal Dependabot Manager'
+description: 'A GitHub custom action to manage dependencies for Node.js, C#, and Java projects.'
+author: 'Pulak Paul'
+inputs:
+  github_token:
+    description: 'GitHub token with repository access'
+    required: true
+  language:
+    description: 'Programming language (e.g., node.js, csharp, java)'
+    required: false
+outputs:
+  status:
+    description: 'Status of the dependency update process'
+runs:
+  using: 'node16'
+  main: 'index.js'
