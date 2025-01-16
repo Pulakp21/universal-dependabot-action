@@ -31894,11 +31894,11 @@ async function createPullRequestsForAlerts(octokit, owner, repo, alerts) {
 
     core.info(`Started pull request for ${alert.dependency.package}......`);
 
-    core.info(`state:: ${alert.state} fixable::  ${alert.fixable}......`);
+    core.info(`state:: ${alert.state} fixable:: ${alert.fixable}......`);
 
     const { number, security_advisory, dependency } = alert;
 
-    if (alert.state === 'open' && alert.fixable) {
+    if (alert.state === 'open') {
       const branchName = `dependabot/${alert.dependency.package}/security-fix`;
       core.info(`Creating pull request for ${alert.dependency.package}...`);
 
