@@ -31870,9 +31870,11 @@ async function enableVulnerabilityAlerts(octokit, owner, repo) {
     console.log('Vulnerability alerts enabled.');
   } catch (error) {
     if (error.status === 403) {
-      console.error('Vulnerability alerts are not supported for this repository.');
+      console.error('Vulnerability alerts are not supported for this repository or insufficient permissions.');
+    } else if (error.status === 404) {
+      console.error("Repository not found or invalid token.");
     } else {
-      throw error;
+      console.error(`Unexpected error: ${error.message}`);
     }
   }
 }
@@ -31888,19 +31890,38 @@ async function fetchSecurityAlerts(octokit, owner, repo) {
 
 async function createPullRequestsForAlerts(octokit, owner, repo, alerts) {
   for (const alert of alerts) {
-    const { number, security_advisory, dependency } = alert;
-    const branchName = `dependabot-fix-${dependency.package}`;
 
-    // Example PR creation logic
-    await octokit.request('POST /repos/{owner}/{repo}/pulls', {
-      owner,
-      repo,
-      title: `Fix: Security vulnerability in ${dependency.package}`,
-      head: branchName,
-      base: 'main', // Adjust as needed
-      body: `### Security Fix\n\n- **Package**: ${dependency.package}\n- **Severity**: ${security_advisory.severity}\n- **Summary**: ${security_advisory.summary}\n\nFixes #${number}`,
-    });
-    console.log(`Pull request created for ${dependency.package}.`);
+    const { number, security_advisory, dependency } = alert;
+
+    if (alert.state === 'open' && alert.fixable) {
+      const branchName = `dependabot/${alert.dependency.package}/security-fix`;
+      core.info(`Creating pull request for ${alert.dependency.package}...`);
+
+      // Create a branch
+      await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+        owner,
+        repo,
+        ref: `refs/heads/${branchName}`,
+        sha: github.context.sha,
+      });
+
+      // Create a pull request
+      const pr = await octokit.request('POST /repos/{owner}/{repo}/pulls', {
+        owner,
+        repo,
+        title: `Security fix for ${alert.dependency.package}`,
+        head: branchName,
+        base: 'main', // Adjust as needed
+        body: `Fixes the following security vulnerability:\n\n- ${alert.dependency.package}\n\n**Severity**: ${alert.severity}\n\n**Advisory**: ${alert.advisory}\n\n- **Summary**: ${security_advisory.summary}\N\n Fixes #${number}`,
+      });
+
+      // body: `### Security Fix\n\n- **Package**: ${dependency.package}\n- **Severity**: ${security_advisory.severity}\n- **Summary**: ${security_advisory.summary}\n\nFixes #${number}`,
+   
+
+      pullRequests.push(pr.data.html_url);
+      console.log(`Pull request created for ${dependency.package}.`);
+
+    }
   }
 }
 
