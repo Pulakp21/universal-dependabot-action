@@ -31889,7 +31889,12 @@ async function fetchSecurityAlerts(octokit, owner, repo) {
 }
 
 async function createPullRequestsForAlerts(octokit, owner, repo, alerts) {
+  
   for (const alert of alerts) {
+
+    core.info(`Started pull request for ${alert.dependency.package}......`);
+
+    core.info(`state:: ${alert.state} fixable::  ${alert.fixable}......`);
 
     const { number, security_advisory, dependency } = alert;
 
@@ -31922,7 +31927,9 @@ async function createPullRequestsForAlerts(octokit, owner, repo, alerts) {
       console.log(`Pull request created for ${dependency.package}.`);
 
     }
+    core.info(`Completed pull request for ${alert.dependency.package}......`);
   }
+  
 }
 
 run();
