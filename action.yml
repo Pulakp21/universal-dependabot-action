@@ -1,16 +1,16 @@
 name: 'Universal Dependabot Manager'
-description: 'A GitHub custom action to manage dependencies for Node.js, C#, and Java projects.'
+description: 'A custom GitHub Action to enable vulnerability alerts, fetch security alerts, and create pull requests for security vulnerabilities in repositories.'
 author: 'Pulak Paul'
 inputs:
   github_token:
     description: 'GitHub token with repository access'
     required: true
-  language:
-    description: 'Programming language (e.g., node.js, csharp, java)'
-    required: false
 outputs:
-  status:
-    description: 'Status of the dependency update process'
+  alerts_processed:
+    description: 'The number of security alerts processed.'
+branding:
+  color: 'blue'
+  icon: 'shield'
 runs:
   using: 'node16'
   main: 'index.js'

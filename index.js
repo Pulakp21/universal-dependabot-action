@@ -7,7 +7,6 @@ const yaml = require('js-yaml');
 async function run() {
   try {
     const token = core.getInput('github_token');
-    const repoPath = core.getInput('repo_path') || '.';
     const octokit = github.getOctokit(token);
 
     const { owner, repo } = github.context.repo;
@@ -26,6 +25,9 @@ async function run() {
     } else {
       console.log('No security alerts found.');
     }
+
+    // Set the output for alerts_processed
+    core.setOutput('alerts_processed', alerts.length);
 
   } catch (error) {
     core.setFailed(`Action failed: ${error.message}`);
