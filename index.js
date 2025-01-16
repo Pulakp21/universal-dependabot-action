@@ -1,8 +1,5 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-const axios = require('axios');
-const path = require('path');
-const yaml = require('js-yaml');
 
 async function run() {
   try {
