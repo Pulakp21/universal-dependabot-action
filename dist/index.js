@@ -31845,9 +31845,27 @@ async function run() {
     const alerts = await fetchSecurityAlerts(octokit, owner, repo);
     console.log(`Found ${alerts.length} security alerts.`);
 
-    // Step 3: Create Pull Requests for Alerts
+
     if (alerts.length > 0) {
-      await createPullRequestsForAlerts(octokit, owner, repo, alerts);
+
+      for (const alert of alerts) {
+        const ecosystem = alert.package_ecosystem;
+        const manifestPath = alert.manifest_path;
+
+        console.log(`Processing alert for ${manifestPath} in ecosystem ${ecosystem}`);
+
+        // step 3: For each alert, create a security update 
+        const update = await createSecurityUpdate(octokit, owner, repo, ecosystem, manifestPath);
+
+        if (update) {
+          // Step 4: Create Pull Requests for Alerts
+          await createPullRequest(octokit, owner, repo, update.branch, baseBranch);
+        } else {
+          console.log(`failed to security updates for ${manifestPath} in ecosystem ${ecosystem}`);
+        }
+
+      }
+      // await createPullRequestsForAlerts(octokit, owner, repo, alerts);
     } else {
       console.log('No security alerts found.');
     }
@@ -31888,48 +31906,38 @@ async function fetchSecurityAlerts(octokit, owner, repo) {
   return response.data; // Array of security alerts
 }
 
-async function createPullRequestsForAlerts(octokit, owner, repo, alerts) {
-  
-  for (const alert of alerts) {
-
-    core.info(`Started pull request for ${alert.dependency.package}......`);
-
-    core.info(`state:: ${alert.state} fixable:: ${alert.fixable}......`);
-
-    const { number, security_advisory, dependency } = alert;
-
-    if (alert.state === 'open') {
-      const branchName = `dependabot/${alert.dependency.package.name}/security-fix`;
-      core.info(`Creating pull request for ${alert.dependency.package.name}...`);
-
-      // Create a branch
-      await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
-        owner,
-        repo,
-        ref: `refs/heads/${branchName}`,
-        sha: github.context.sha,
-      });
-
-      // Create a pull request
-      const pr = await octokit.request('POST /repos/{owner}/{repo}/pulls', {
-        owner,
-        repo,
-        title: `Security fix for ${alert.dependency.package}`,
-        head: branchName,
-        base: 'main', // Adjust as needed
-        body: `Fixes the following security vulnerability:\n\n- ${alert.dependency.package.name}(${alert.dependency.package.ecosystem})\n\n**Severity**: ${alert.severity}\n\n**Advisory**: ${alert.advisory}\n\n- **Summary**: ${security_advisory.summary}\N\n Fixes #${number}`,
-      });
-
-      // body: `### Security Fix\n\n- **Package**: ${dependency.package}\n- **Severity**: ${security_advisory.severity}\n- **Summary**: ${security_advisory.summary}\n\nFixes #${number}`,
-   
-
-      pullRequests.push(pr.data.html_url);
-      console.log(`Pull request created for ${dependency.package}.`);
-
-    }
-    core.info(`Completed pull request for ${alert.dependency.package}......`);
+async function createSecurityUpdate(octokit, owner, repo, ecosystem, manifestPath) {
+  try {
+    const response = await octokit.request('POST /repos/{owner}/{repo}/dependabot/security-updates', {
+      owner,
+      repo,
+      security_update: {
+        package_ecosystem: ecosystem,
+        manifest: manifestPath,
+      },
+    });
+    console.log(`Security update created for ${manifestPath}: ${response.status}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to create security update for ${manifestPath}:`, error.message);
   }
-  
+}
+
+async function createPullRequest(octokit, owner, repo, branch, base) {
+  try {
+    const response = await octokit.request('POST /repos/{owner}/{repo}/pulls', {
+      owner,
+      repo,
+      title: `Security update: ${branch}`,
+      head: branch,
+      base,
+      body: 'This pull request resolves security vulnerabilities.',
+    });
+    console.log(`Pull request created: ${response.data.html_url}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to create pull request for branch ${branch}:`, error.message);
+  }
 }
 
 run();
