@@ -72,7 +72,7 @@ async function enableVulnerabilityAlerts(octokit, owner, repo) {
 
 async function enableDependabotSecurityUpdates(octokit, owner, repo) {
   try {
-    const response = await octokit.request('PUT /repos/{owner}/{repo}/vulnerability-alerts', {
+    const response = await octokit.request('PUT /repos/{owner}/{repo}/automated-security-fixes', {
       owner,
       repo,
       mediaType: {
