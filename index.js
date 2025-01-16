@@ -20,8 +20,8 @@ async function run() {
     if (alerts.length > 0) {
 
       for (const alert of alerts) {
-        const ecosystem = alert.package_ecosystem;
-        const manifestPath = alert.manifest_path;
+        const ecosystem = alert.dependency.package.ecosystem;
+        const manifestPath = alert.dependency.manifest_path;
 
         console.log(`Processing alert for ${manifestPath} in ecosystem ${ecosystem}`);
 
