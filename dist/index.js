@@ -31858,7 +31858,7 @@ async function run() {
 
         // step 3: For each alert, create a security update 
         const update = await createSecurityUpdate(octokit, owner, repo, ecosystem, manifestPath);
-
+        console.log(`update :: ${update} `);
         if (update) {
           // Step 4: Create Pull Requests for Alerts
           await createPullRequest(octokit, owner, repo, update.branch, baseBranch);
@@ -31935,6 +31935,8 @@ async function fetchSecurityAlerts(octokit, owner, repo) {
 
 async function createSecurityUpdate(octokit, owner, repo, ecosystem, manifestPath) {
   try {
+    console.log(`Creating security update for ecosystem: ${ecosystem}, manifestPath: ${manifestPath}`);
+    
     const response = await octokit.request('POST /repos/{owner}/{repo}/dependabot/security-updates', {
       owner,
       repo,
@@ -31946,7 +31948,14 @@ async function createSecurityUpdate(octokit, owner, repo, ecosystem, manifestPat
     console.log(`Security update created for ${manifestPath}: ${response.status}`);
     return response.data;
   } catch (error) {
-    console.error(`Failed to create security update for ${manifestPath}:`, error.message);
+    if (error.status === 404) {
+      console.error(`Manifest file not found or no security updates available for ${manifestPath}.`);
+    } else if (error.status === 403) {
+      console.error(`Insufficient permissions to create security update for ${manifestPath}.`);
+    } else {
+      console.error(`Failed to create security update for ${manifestPath}: ${error.message}`);
+    }
+    return null;
   }
 }
 
