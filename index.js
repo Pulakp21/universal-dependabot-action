@@ -12,6 +12,8 @@ async function run() {
     // Step 1: Enable Vulnerability Alerts
     await enableVulnerabilityAlerts(octokit, owner, repo);
 
+    await enableDependabotSecurityUpdates(octokit, owner, repo);
+
     // Step 2: Fetch Security Alerts
     const alerts = await fetchSecurityAlerts(octokit, owner, repo);
     console.log(`Found ${alerts.length} security alerts.`);
@@ -64,6 +66,31 @@ async function enableVulnerabilityAlerts(octokit, owner, repo) {
       console.error("Repository not found or invalid token.");
     } else {
       console.error(`Unexpected error: ${error.message}`);
+    }
+  }
+}
+
+async function enableDependabotSecurityUpdates(octokit, owner, repo) {
+  try {
+    const response = await octokit.request('PUT /repos/{owner}/{repo}/vulnerability-alerts', {
+      owner,
+      repo,
+      mediaType: {
+        previews: ['dorian'], // Required for this API
+      },
+    });
+    console.log(`Dependabot security updates enabled for ${owner}/${repo}.`);
+  } catch (error) {
+    if (error.status === 403) {
+      console.error(
+        'Failed to enable Dependabot security updates: Insufficient permissions or feature not supported for this repository.'
+      );
+    } else if (error.status === 404) {
+      console.error(
+        'Failed to enable Dependabot security updates: Repository not found or unavailable.'
+      );
+    } else {
+      console.error(`Failed to enable Dependabot security updates: ${error.message}`);
     }
   }
 }
