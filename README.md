@@ -17,9 +17,10 @@
 Dependabot provides automated security updates and vulnerability scanning.  
 To leverage these features, the workflow will:
 
-1. Enable Vulnerability Alerts.  
-2. Fetch security alerts for a repository.  
-3. Create pull requests to resolve detected vulnerabilities.
+1. Enable Vulnerability Alerts.
+2. Enable Dependabot Security Updates
+3. Fetch security alerts for a repository.  
+4. Create pull requests to resolve detected vulnerabilities.
 
 # Key Features of This Approach
 
