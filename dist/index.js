@@ -31882,46 +31882,60 @@ async function run() {
 
 async function enableVulnerabilityAlerts(octokit, owner, repo) {
   try {
-    await octokit.request('PUT /repos/{owner}/{repo}/vulnerability-alerts', {
+      // Check if Vulnerability alerts are enabled
+    await octokit.request('GET /repos/{owner}/{repo}/vulnerability-alerts', {
       owner,
       repo,
       mediaType: { previews: ['dorian'] },
     });
-    console.log('Vulnerability alerts enabled.');
-  } catch (error) {
+    console.log("Vulnerability alerts are already enabled.");
+  } catch(error){
     if (error.status === 403) {
       console.error('Vulnerability alerts are not supported for this repository or insufficient permissions.');
     } else if (error.status === 404) {
-      console.error("Repository not found or invalid token.");
+      console.log("Enabling Vulnerability alerts...");
+      await octokit.request('PUT /repos/{owner}/{repo}/vulnerability-alerts', {
+        owner,
+        repo,
+        mediaType: { previews: ['dorian'] },
+      });
+      console.log("Vulnerability alerts enabled.")
     } else {
-      console.error(`Unexpected error: ${error.message}`);
+      console.error("Failed to check or enable Vulnerability alerts:", error.message);
+      throw error;
     }
   }
 }
 
+
 async function enableDependabotSecurityUpdates(octokit, owner, repo) {
   try {
-    const response = await octokit.request('PUT /repos/{owner}/{repo}/automated-security-fixes', {
+      // Check if Dependabot is configured by verifying its public key endpoint
+    await octokit.request('GET /repos/{owner}/{repo}/dependabot/secrets/public-key', {
       owner,
       repo,
-      mediaType: {
-        previews: ['dorian'], // Required for this API
-      },
     });
-    console.log(`Dependabot security updates enabled for ${owner}/${repo}.`);
-  } catch (error) {
+    console.log("Dependabot security updates are already enabled.");
+
+  }catch(error){
     if (error.status === 403) {
       console.error(
         'Failed to enable Dependabot security updates: Insufficient permissions or feature not supported for this repository.'
       );
     } else if (error.status === 404) {
-      console.error(
-        'Failed to enable Dependabot security updates: Repository not found or unavailable.'
-      );
+
+      console.log("Enabling Dependabot security updates...");
+      await octokit.request('PUT /repos/{owner}/{repo}/dependabot/security-updates', {
+        owner,
+        repo,
+        mediaType: { previews: ['dorian'] },
+      });
+      console.log("Dependabot security updates enabled.");
     } else {
-      console.error(`Failed to enable Dependabot security updates: ${error.message}`);
+      console.error("Failed to check or enable Dependabot security updates:", error.message);
+      throw error;
     }
-  }
+ } 
 }
 
 async function fetchSecurityAlerts(octokit, owner, repo) {
