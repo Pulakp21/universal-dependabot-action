@@ -31930,6 +31930,7 @@ async function fetchSecurityAlerts(octokit, owner, repo) {
     repo,
     mediaType: { previews: ['dorian'] },
   });
+  console.log(response);
   return response.data; // Array of security alerts
 }
 
