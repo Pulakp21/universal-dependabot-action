@@ -118,8 +118,10 @@ async function createSecurityUpdate(octokit, owner, repo, ecosystem, manifestPat
       },
     });
     console.log(`Security update created for ${manifestPath}: ${response.status}`);
+    console.log(response);
     return response.data;
   } catch (error) {
+    console.log(error);
     if (error.status === 404) {
       console.error(`Manifest file not found or no security updates available for ${manifestPath}.`);
     } else if (error.status === 403) {
@@ -142,8 +144,10 @@ async function createPullRequest(octokit, owner, repo, branch, base) {
       body: 'This pull request resolves security vulnerabilities.',
     });
     console.log(`Pull request created: ${response.data.html_url}`);
+    console.log(response);
     return response.data;
   } catch (error) {
+    console.log(error);
     console.error(`Failed to create pull request for branch ${branch}:`, error.message);
   }
 }
